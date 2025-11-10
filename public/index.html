@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETA Bot 管理画面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: #5865F2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #5865F2;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #5865F2;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #5865F2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+        }
+        
+        .btn-danger {
+            background: #ED4245;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c03537;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(237, 66, 69, 0.4);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-box h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .history-table th,
+        .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 ETA Bot 管理画面</h1>
+            <p>Discord タイムアウト管理BOTの設定と統計</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <!-- 統計情報 -->
+        <div class="card">
+            <h2>📊 統計情報</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3 id="total-timeouts">0</h3>
+                    <p>総タイムアウト回数</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="total-users">0</h3>
+                    <p>実行したユーザー数</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="total-guilds">0</h3>
+                    <p>サーバー数</p>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="resetStatistics()">統計をリセット</button>
+        </div>
+
+        <!-- 設定 -->
+        <div class="card">
+            <h2>⚙️ BOT設定</h2>
+            <form id="config-form">
+                <div class="form-group">
+                    <label>BOTトークン</label>
+                    <input type="password" id="token" required>
+                    <small>Discord Developer Portalで取得したBOTトークン</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>ターゲットロールID</label>
+                    <input type="text" id="targetRoleId" required>
+                    <small>タイムアウトされる対象となるロールのID</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>コマンドプレフィックス</label>
+                    <input type="text" id="prefix" required>
+                    <small>コマンドの接頭辞（例: !eta）</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>最小タイムアウト時間（秒）</label>
+                    <input type="number" id="minTimeout" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>最大タイムアウト時間（秒）</label>
+                    <input type="number" id="maxTimeout" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>クールダウン時間（秒）</label>
+                    <input type="number" id="cooldownSeconds" min="0" required>
+                    <small>同じユーザーが次にコマンドを使えるまでの待機時間</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Webポート</label>
+                    <input type="number" id="webPort" min="1" max="65535" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>管理パスワード</label>
+                    <input type="password" id="password" required>
+                    <small>設定を保存する際に必要なパスワード</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">設定を保存</button>
+            </form>
+        </div>
+
+        <!-- 履歴 -->
+        <div class="card">
+            <h2>📜 最近のタイムアウト履歴</h2>
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>日時</th>
+                            <th>サーバーID</th>
+                            <th>実行者ID</th>
+                            <th>ターゲットID</th>
+                            <th>時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">データを読み込み中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = {};
+
+        // アラート表示
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // 設定読み込み
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                currentConfig = await response.json();
+                
+                document.getElementById('token').value = currentConfig.token;
+                document.getElementById('targetRoleId').value = currentConfig.targetRoleId;
+                document.getElementById('prefix').value = currentConfig.prefix;
+                document.getElementById('minTimeout').value = currentConfig.minTimeout;
+                document.getElementById('maxTimeout').value = currentConfig.maxTimeout;
+                document.getElementById('cooldownSeconds').value = currentConfig.cooldownSeconds;
+                document.getElementById('webPort').value = currentConfig.webPort;
+            } catch (error) {
+                showAlert('設定の読み込みに失敗しました', 'error');
+            }
+        }
+
+        // 統計読み込み
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/statistics');
+                const data = await response.json();
+                
+                document.getElementById('total-timeouts').textContent = data.timeouts.length;
+                
+                const uniqueUsers = new Set();
+                const uniqueGuilds = new Set();
+                
+                data.timeouts.forEach(t => {
+                    uniqueUsers.add(t.executorId);
+                    uniqueGuilds.add(t.guildId);
+                });
+                
+                document.getElementById('total-users').textContent = uniqueUsers.size;
+                document.getElementById('total-guilds').textContent = uniqueGuilds.size;
+                
+                // 履歴テーブル更新
+                const historyBody = document.getElementById('history-body');
+                historyBody.innerHTML = '';
+                
+                const recentHistory = data.timeouts.slice(-20).reverse();
+                
+                if (recentHistory.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">履歴がありません</td></tr>';
+                } else {
+                    recentHistory.forEach(item => {
+                        const row = document.createElement('tr');
+                        const date = new Date(item.timestamp);
+                        row.innerHTML = `
+                            <td>${date.toLocaleString('ja-JP')}</td>
+                            <td>${item.guildId}</td>
+                            <td>${item.executorId}</td>
+                            <td>${item.targetId}</td>
+                            <td>${item.duration}秒</td>
+                        `;
+                        historyBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                showAlert('統計の読み込みに失敗しました', 'error');
+            }
+        }
+
+        // 設定保存
+        document.getElementById('config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const config = {
+                token: document.getElementById('token').value,
+                targetRoleId: document.getElementById('targetRoleId').value,
+                prefix: document.getElementById('prefix').value,
+                minTimeout: parseInt(document.getElementById('minTimeout').value),
+                maxTimeout: parseInt(document.getElementById('maxTimeout').value),
+                cooldownSeconds: parseInt(document.getElementById('cooldownSeconds').value),
+                webPort: parseInt(document.getElementById('webPort').value),
+                password: document.getElementById('password').value
+            };
+            
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('設定を保存しました！', 'success');
+                    document.getElementById('password').value = '';
+                    await loadConfig();
+                } else {
+                    showAlert(result.error || '設定の保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                showAlert('設定の保存に失敗しました', 'error');
+            }
+        });
+
+        // 統計リセット
+        async function resetStatistics() {
+            if (!confirm('本当に統計をリセットしますか？この操作は取り消せません。')) {
+                return;
+            }
+            
+            const password = prompt('管理パスワードを入力してください:');
+            if (!password) return;
+            
+            try {
+                const response = await fetch('/api/statistics/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('統計をリセットしました', 'success');
+                    await loadStatistics();
+                } else {
+                    showAlert(result.error || '統計のリセットに失敗しました', 'error');
+                }
+            } catch (error) {
+                showAlert('統計のリセットに失敗しました', 'error');
+            }
+        }
+
+        // 初期読み込み
+        loadConfig();
+        loadStatistics();
+        
+        // 定期的に統計を更新
+        setInterval(loadStatistics, 10000);
+    </script>
+</body>
+</html>
